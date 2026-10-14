@@ -8,7 +8,7 @@ TARGET = iphone:clang:latest:15.0
 INSTALL_TARGET_PROCESSES = SpringBoard Preferences
 include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = RenderFPS
-RenderFPS_FILES = Collector.mm Overlay.xm Shared.m
+RenderFPS_FILES = Overlay.xm Shared.m
 RenderFPS_CFLAGS = -fobjc-arc
 RenderFPS_FRAMEWORKS = UIKit Foundation QuartzCore Metal
 include $(THEOS_MAKE_PATH)/tweak.mk

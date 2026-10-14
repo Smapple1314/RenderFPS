@@ -1,11 +1,11 @@
 #import "Shared.h"
 #import <objc/message.h>
 #import <math.h>
+#import <QuartzCore/QuartzCore.h>
 
 static UIWindow *RFWindow;
 static NSDictionary *RFPrefs;
-static int RFReadingToken=-1;
-static NSString *RFCurrentBundle;
+
 
 static id RFCall(id object, NSString *name) {
     SEL sel=NSSelectorFromString(name);
@@ -30,6 +30,10 @@ static BOOL RFLocked(void) {
 @interface RFOverlay : UIViewController
 @property(nonatomic,strong) UILabel *label;
 @property(nonatomic,strong) NSTimer *timer;
+@property(nonatomic,strong) CADisplayLink *displayLink;
+@property(nonatomic,assign) double sampleStart;
+@property(nonatomic,assign) NSUInteger sampleCount;
+@property(nonatomic,assign) double measuredFPS;
 @property(nonatomic,assign) CGPoint dragOrigin;
 - (void)refresh;
 - (void)position;
@@ -41,7 +45,7 @@ static BOOL RFLocked(void) {
     self.label=[UILabel new]; self.label.text=@"FPS --";
     self.label.textAlignment=NSTextAlignmentCenter;
     self.label.userInteractionEnabled=YES;
-    self.label.accessibilityLabel=@"应用 Metal 呈现帧率；长按打开设置，双击锁定位置";
+    self.label.accessibilityLabel=@"桌面显示回调频率；长按打开设置，双击锁定位置";
     [self.view addSubview:self.label];
     UITapGestureRecognizer *tap=[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleLock)];
     tap.numberOfTapsRequired=2; [self.label addGestureRecognizer:tap];
@@ -51,7 +55,21 @@ static BOOL RFLocked(void) {
     [pan requireGestureRecognizerToFail:hold]; [self.label addGestureRecognizer:pan];
     self.timer=[NSTimer timerWithTimeInterval:0.5 target:self selector:@selector(refresh) userInfo:nil repeats:YES];
     [NSRunLoop.mainRunLoop addTimer:self.timer forMode:NSRunLoopCommonModes];
+    self.displayLink=[CADisplayLink displayLinkWithTarget:self selector:@selector(displayTick:)];
+    // No preferredFrameRateRange override: do not request/force 120 Hz.
+    [self.displayLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
     [self refresh];
+}
+- (void)displayTick:(CADisplayLink *)link {
+    if (self.sampleStart==0) { self.sampleStart=link.timestamp; return; }
+    self.sampleCount++;
+    double elapsed=link.timestamp-self.sampleStart;
+    double interval=fmin(2,fmax(0.25,[RFPrefs[@"interval"] doubleValue]));
+    if (elapsed>=interval) {
+        self.measuredFPS=self.sampleCount/elapsed;
+        self.label.text=[NSString stringWithFormat:@"FPS %.0f",self.measuredFPS];
+        self.sampleStart=link.timestamp; self.sampleCount=0;
+    }
 }
 - (void)viewDidLayoutSubviews { [super viewDidLayoutSubviews]; [self position]; }
 - (BOOL)shouldAutorotate { return YES; }
@@ -70,21 +88,20 @@ static BOOL RFLocked(void) {
 - (void)refresh {
     BOOL hide=![RFPrefs[@"enabled"] boolValue] || RFLocked();
     RFWindow.hidden=hide;
+    if (self.displayLink.paused != hide) {
+        self.displayLink.paused=hide;
+        self.sampleStart=0; self.sampleCount=0; self.measuredFPS=0;
+        self.label.text=@"FPS --";
+    }
     if (hide) return;
     CGFloat size=fmin(28,fmax(8,[RFPrefs[@"fontSize"] doubleValue]));
     self.label.font=[UIFont monospacedDigitSystemFontOfSize:size weight:[RFPrefs[@"bold"] boolValue] ? UIFontWeightBold : UIFontWeightRegular];
-    self.label.textColor=[UIColor colorWithRed:fmin(1,fmax(0,[RFPrefs[@"red"] doubleValue])) green:fmin(1,fmax(0,[RFPrefs[@"green"] doubleValue])) blue:fmin(1,fmax(0,[RFPrefs[@"blue"] doubleValue])) alpha:1];
-    id application=RFCall(UIApplication.sharedApplication,@"_accessibilityFrontMostApplication");
-    NSString *bundle=RFCall(application,@"bundleIdentifier");
-    if (![bundle isKindOfClass:NSString.class]) bundle=nil;
-    if (![RFCurrentBundle isEqual:bundle]) {
-        if (RFReadingToken>=0) notify_cancel(RFReadingToken);
-        RFReadingToken=-1; RFCurrentBundle=[bundle copy];
-        if (bundle.length) notify_register_check(RFChannel(bundle).UTF8String,&RFReadingToken);
-    }
-    uint64_t state=0; double fps=0;
-    BOOL valid=RFApplicationEnabled(RFPrefs,bundle) && RFReadingToken>=0 && notify_get_state(RFReadingToken,&state)==NOTIFY_STATUS_OK && RFUnpackReading(state,&fps);
-    self.label.text=valid ? [NSString stringWithFormat:@"FPS %.0f",fps] : @"FPS --";
+    BOOL invert=[RFPrefs[@"invert"] boolValue];
+    CGFloat alpha=fmin(1,fmax(0,[RFPrefs[@"alpha"] doubleValue]));
+    self.label.textColor=invert ? UIColor.whiteColor : [UIColor colorWithRed:fmin(1,fmax(0,[RFPrefs[@"red"] doubleValue])) green:fmin(1,fmax(0,[RFPrefs[@"green"] doubleValue])) blue:fmin(1,fmax(0,[RFPrefs[@"blue"] doubleValue])) alpha:alpha];
+    // Experimental Core Animation difference blend. White source inverts backdrop.
+    // Cross-window backdrop availability is not guaranteed; validate on device.
+    self.label.layer.compositingFilter=invert ? @"differenceBlendMode" : nil;
     [self position];
 }
 - (void)toggleLock {

@@ -1,8 +1,8 @@
 Package: com.minis.renderfps
 Name: RenderFPS
-Version: 0.2.0
+Version: 0.3.0
 Architecture: iphoneos-arm64
-Description: Experimental opt-in Metal presented-frame meter with native Settings.
+Description: SpringBoard display callback meter with native color picker and Settings.
 Maintainer: Minis
 Author: Minis
 Section: Tweaks

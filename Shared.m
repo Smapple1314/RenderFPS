@@ -4,7 +4,7 @@
 NSString *const RFPreferenceDomain = @"com.minis.renderfps";
 NSString *const RFPreferenceNotification = @"com.minis.renderfps/preferences.changed";
 NSDictionary *RFReadPreferences(void) {
-    NSMutableDictionary *defaults = [@{@"enabled":@YES, @"fontSize":@12, @"bold":@NO, @"red":@1, @"green":@1, @"blue":@1, @"x":@0.9, @"y":@0.04, @"locked":@YES, @"interval":@0.5, @"applications":@""} mutableCopy];
+    NSMutableDictionary *defaults = [@{@"enabled":@YES, @"fontSize":@12, @"bold":@NO, @"red":@1, @"green":@1, @"blue":@1, @"alpha":@1, @"invert":@NO, @"x":@0.9, @"y":@0.04, @"locked":@YES, @"interval":@0.5, @"applications":@""} mutableCopy];
     CFPreferencesAppSynchronize((__bridge CFStringRef)RFPreferenceDomain);
     for (NSString *key in defaults.allKeys) {
         id value = CFBridgingRelease(CFPreferencesCopyAppValue((__bridge CFStringRef)key, (__bridge CFStringRef)RFPreferenceDomain));
