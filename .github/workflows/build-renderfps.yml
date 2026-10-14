@@ -30,17 +30,19 @@ jobs:
           if [ '${{ matrix.scheme }}' = roothide ]; then
             REPO=roothide/theos
           fi
-                    git clone --depth 1 https://github.com/theos/sdks.git "$HOME/renderfps-sdks"
+          git clone --recursive "https://github.com/$REPO.git" "$HOME/theos-renderfps"
+          echo "THEOS=$HOME/theos-renderfps" >> "$GITHUB_ENV"
+          git clone --depth 1 https://github.com/theos/sdks.git "$HOME/renderfps-sdks"
           mkdir -p "$HOME/theos-renderfps/sdks"
           cp -R "$HOME/renderfps-sdks/iPhoneOS16.5.sdk" "$HOME/theos-renderfps/sdks/"
-          
-
 
       - name: Compile and verify package
         shell: bash
         run: |
           set -euo pipefail
           export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
+          test -n "${THEOS:-}"
+          test -f "$THEOS/makefiles/common.mk"
           make clean
           make package THEOS_PACKAGE_SCHEME=${{ matrix.scheme }} FINALPACKAGE=1
           python3 - <<'PY'
