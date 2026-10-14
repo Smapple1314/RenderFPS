@@ -1,0 +1,71 @@
+name: Build RenderFPS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        scheme: [rootless, roothide]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install make dpkg ldid
+
+      - name: Install Theos and SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPO=theos/theos
+          if [ '${{ matrix.scheme }}' = roothide ]; then
+            REPO=roothide/theos
+          fi
+          git clone --recursive "https://github.com/$REPO.git" "$HOME/theos-renderfps"
+          echo "THEOS=$HOME/theos-renderfps" >> "$GITHUB_ENV"
+          SDK_PATH="$(xcrun --sdk iphoneos --show-sdk-path)"
+          SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+          mkdir -p "$HOME/theos-renderfps/sdks"
+          ln -s "$SDK_PATH" "$HOME/theos-renderfps/sdks/iPhoneOS${SDK_VERSION}.sdk"
+
+      - name: Compile and verify package
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$(brew --prefix make)/libexec/gnubin:$PATH"
+          make clean
+          make package THEOS_PACKAGE_SCHEME=${{ matrix.scheme }} FINALPACKAGE=1
+          python3 - <<'PY'
+          import glob
+          import subprocess
+          packages = glob.glob('packages/*.deb')
+          assert len(packages) == 1, packages
+          package = packages[0]
+          scheme = '${{ matrix.scheme }}'
+          expected = 'iphoneos-arm64e' if scheme == 'roothide' else 'iphoneos-arm64'
+          architecture = subprocess.check_output(
+              ['dpkg-deb', '-f', package, 'Architecture'], text=True
+          ).strip()
+          version = subprocess.check_output(
+              ['dpkg-deb', '-f', package, 'Version'], text=True
+          ).strip()
+          assert architecture == expected, architecture
+          assert version == '0.2.0', version
+          subprocess.run(['dpkg-deb', '--contents', package], check=True)
+          PY
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: RenderFPS-${{ matrix.scheme }}
+          path: packages/*.deb
+          if-no-files-found: error
