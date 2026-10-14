@@ -1,0 +1,9 @@
+Package: com.minis.renderfps
+Name: RenderFPS
+Version: 0.2.0
+Architecture: iphoneos-arm64
+Description: Experimental opt-in Metal presented-frame meter with native Settings.
+Maintainer: Minis
+Author: Minis
+Section: Tweaks
+Depends: mobilesubstrate, preferenceloader, firmware (>= 15.0)
