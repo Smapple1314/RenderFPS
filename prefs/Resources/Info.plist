@@ -2,17 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleIdentifier</key>
-    <string>com.minis.renderfps.preferences</string>
-    <key>CFBundleName</key>
-    <string>RenderFPSPrefs</string>
-    <key>CFBundleExecutable</key>
-    <string>RenderFPSPrefs</string>
-    <key>CFBundlePackageType</key>
-    <string>BNDL</string>
-    <key>CFBundleVersion</key>
-    <string>0.2.0</string>
-    <key>NSPrincipalClass</key>
-    <string>RFSettingsController</string>
+	<key>CFBundleExecutable</key>
+	<string>RenderFPSPrefs</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.minis.renderfps.preferences</string>
+	<key>CFBundleName</key>
+	<string>RenderFPSPrefs</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleVersion</key>
+	<string>0.3.0</string>
+	<key>NSPrincipalClass</key>
+	<string>RFSettingsController</string>
 </dict>
 </plist>

@@ -12,7 +12,7 @@
 			<key>label</key>
 			<string>RenderFPS · 实验版</string>
 			<key>footerText</key>
-			<string>当前仅实现 Metal drawable 呈现反馈，不是面板实时 Hz。未支持的应用、桌面和采集失败显示 FPS --。iOS 15–26 是适配目标，不是已验证兼容范围。</string>
+			<string>统计 SpringBoard 的实际 CADisplayLink 回调频率，不是面板硬件 Hz 或 App 渲染 FPS。不强制请求 120 Hz。iOS 15–26 尚未全范围验证。</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -34,33 +34,13 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>应用采集</string>
-			<key>footerText</key>
-			<string>输入你同意注入采集的 App Bundle ID，以英文逗号分隔。默认空列表不采集任何 App；修改后重新启动目标 App。第三方 App 可能拒绝注入；不绕过反作弊或完整性检查。</string>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSEditTextCell</string>
-			<key>label</key>
-			<string>应用 Bundle ID</string>
-			<key>key</key>
-			<string>applications</string>
-			<key>default</key>
-			<string></string>
-			<key>defaults</key>
-			<string>com.minis.renderfps</string>
-			<key>get</key>
-			<string>readPreferenceValue:</string>
-			<key>set</key>
-			<string>setPreferenceValue:specifier:</string>
-			<key>placeholder</key>
-			<string>com.example.metaltest</string>
+			<string>原生系统字体</string>
 		</dict>
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>原生系统字体</string>
+			<string>字号</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -104,75 +84,33 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>自定义颜色</string>
+			<string>文字颜色</string>
 			<key>footerText</key>
-			<string>RGB 各为 0–1。真正背景自动反色尚未实现，不以深浅色模式冒充反色。</string>
+			<string>关闭实时反色时使用自定义颜色。反色使用实验性差值混合，不截图；跨窗口背景可能无法参与混合，需真机确认。</string>
 		</dict>
 		<dict>
 			<key>cell</key>
-			<string>PSSliderCell</string>
+			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>红色</string>
+			<string>自定义文字颜色</string>
+			<key>action</key>
+			<string>chooseTextColor</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>实时反色（实验性）</string>
 			<key>key</key>
-			<string>red</string>
+			<string>invert</string>
 			<key>default</key>
-			<integer>1</integer>
+			<false/>
 			<key>defaults</key>
 			<string>com.minis.renderfps</string>
 			<key>get</key>
 			<string>readPreferenceValue:</string>
 			<key>set</key>
 			<string>setPreferenceValue:specifier:</string>
-			<key>min</key>
-			<integer>0</integer>
-			<key>max</key>
-			<integer>1</integer>
-			<key>showValue</key>
-			<true/>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSSliderCell</string>
-			<key>label</key>
-			<string>绿色</string>
-			<key>key</key>
-			<string>green</string>
-			<key>default</key>
-			<integer>1</integer>
-			<key>defaults</key>
-			<string>com.minis.renderfps</string>
-			<key>get</key>
-			<string>readPreferenceValue:</string>
-			<key>set</key>
-			<string>setPreferenceValue:specifier:</string>
-			<key>min</key>
-			<integer>0</integer>
-			<key>max</key>
-			<integer>1</integer>
-			<key>showValue</key>
-			<true/>
-		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSSliderCell</string>
-			<key>label</key>
-			<string>蓝色</string>
-			<key>key</key>
-			<string>blue</string>
-			<key>default</key>
-			<integer>1</integer>
-			<key>defaults</key>
-			<string>com.minis.renderfps</string>
-			<key>get</key>
-			<string>readPreferenceValue:</string>
-			<key>set</key>
-			<string>setPreferenceValue:specifier:</string>
-			<key>min</key>
-			<integer>0</integer>
-			<key>max</key>
-			<integer>1</integer>
-			<key>showValue</key>
-			<true/>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -200,6 +138,12 @@
 		</dict>
 		<dict>
 			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>水平位置</string>
+		</dict>
+		<dict>
+			<key>cell</key>
 			<string>PSSliderCell</string>
 			<key>label</key>
 			<string>水平位置</string>
@@ -219,6 +163,12 @@
 			<integer>1</integer>
 			<key>showValue</key>
 			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>垂直位置</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -248,7 +198,13 @@
 			<key>label</key>
 			<string>统计</string>
 			<key>footerText</key>
-			<string>静止无新呈现反馈时，读数 3 秒后失效显示 --，不假造为 0 或 120。多渲染层场景尚需验证。</string>
+			<string>按实际回调次数与单调时间计算，锁屏暂停；不使用屏幕 maximumFramesPerSecond 冒充实时值。</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>统计间隔（秒）</string>
 		</dict>
 		<dict>
 			<key>cell</key>
