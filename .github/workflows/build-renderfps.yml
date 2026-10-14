@@ -32,10 +32,8 @@ jobs:
           fi
           git clone --recursive "https://github.com/$REPO.git" "$HOME/theos-renderfps"
           echo "THEOS=$HOME/theos-renderfps" >> "$GITHUB_ENV"
-          SDK_PATH="$(xcrun --sdk iphoneos --show-sdk-path)"
-          SDK_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
-          mkdir -p "$HOME/theos-renderfps/sdks"
-          ln -s "$SDK_PATH" "$HOME/theos-renderfps/sdks/iPhoneOS${SDK_VERSION}.sdk"
+          git clone --depth 1 https://github.com/theos/sdks.git "$HOME/renderfps-sdks"
+cp -R "$HOME/renderfps-sdks/iPhoneOS16.5.sdk" "$HOME/theos-renderfps/sdks/"
 
       - name: Compile and verify package
         shell: bash
