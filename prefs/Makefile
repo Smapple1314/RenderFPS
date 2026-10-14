@@ -1,3 +1,13 @@
+THEOS_PACKAGE_SCHEME ?= rootless
+
+ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
+ARCHS = arm64e
+else
+ARCHS = arm64 arm64e
+endif
+
+TARGET = iphone:clang:16.5:15.0
+
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = RenderFPSPrefs
