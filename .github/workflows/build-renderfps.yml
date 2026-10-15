@@ -60,7 +60,7 @@ jobs:
               ['dpkg-deb', '-f', package, 'Version'], text=True
           ).strip()
           assert architecture == expected, architecture
-          assert version == '0.2.0', version
+          assert version == '0.3.0', version
           subprocess.run(['dpkg-deb', '--contents', package], check=True)
           PY
 
